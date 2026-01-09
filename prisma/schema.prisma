@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  orgs      OrganizationMember[]
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  members   OrganizationMember[]
+  lists     MailingList[]
+}
+
+model OrganizationMember {
+  id        String   @id @default(uuid())
+  userId    String
+  orgId     String
+  role      String
+  user      User @relation(fields: [userId], references: [id])
+  org       Organization @relation(fields: [orgId], references: [id])
+}
+
+model MailingList {
+  id        String   @id @default(uuid())
+  name      String
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  subs      ListSubscriber[]
+}
+
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String
+  createdAt DateTime @default(now())
+  lists     ListSubscriber[]
+}
+
+model ListSubscriber {
+  id           String @id @default(uuid())
+  listId       String
+  subscriberId String
+  list         MailingList @relation(fields: [listId], references: [id])
+  subscriber   Subscriber  @relation(fields: [subscriberId], references: [id])
+}
+
+model Campaign {
+  id        String   @id @default(uuid())
+  subject   String
+  body      String
+  listId    String
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model EmailJob {
+  id         String   @id @default(uuid())
+  campaignId String
+  to         String
+  status     String
+  createdAt  DateTime @default(now())
+}
